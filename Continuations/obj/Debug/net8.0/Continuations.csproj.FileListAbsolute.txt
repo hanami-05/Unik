@@ -1,0 +1,15 @@
+C:\Users\79136\source\repos\Lessons\Continuations\bin\Debug\net8.0\Continuations.exe
+C:\Users\79136\source\repos\Lessons\Continuations\bin\Debug\net8.0\Continuations.deps.json
+C:\Users\79136\source\repos\Lessons\Continuations\bin\Debug\net8.0\Continuations.runtimeconfig.json
+C:\Users\79136\source\repos\Lessons\Continuations\bin\Debug\net8.0\Continuations.dll
+C:\Users\79136\source\repos\Lessons\Continuations\bin\Debug\net8.0\Continuations.pdb
+C:\Users\79136\source\repos\Lessons\Continuations\obj\Debug\net8.0\Continuations.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\79136\source\repos\Lessons\Continuations\obj\Debug\net8.0\Continuations.AssemblyInfoInputs.cache
+C:\Users\79136\source\repos\Lessons\Continuations\obj\Debug\net8.0\Continuations.AssemblyInfo.cs
+C:\Users\79136\source\repos\Lessons\Continuations\obj\Debug\net8.0\Continuations.csproj.CoreCompileInputs.cache
+C:\Users\79136\source\repos\Lessons\Continuations\obj\Debug\net8.0\Continuations.sourcelink.json
+C:\Users\79136\source\repos\Lessons\Continuations\obj\Debug\net8.0\Continuations.dll
+C:\Users\79136\source\repos\Lessons\Continuations\obj\Debug\net8.0\refint\Continuations.dll
+C:\Users\79136\source\repos\Lessons\Continuations\obj\Debug\net8.0\Continuations.pdb
+C:\Users\79136\source\repos\Lessons\Continuations\obj\Debug\net8.0\Continuations.genruntimeconfig.cache
+C:\Users\79136\source\repos\Lessons\Continuations\obj\Debug\net8.0\ref\Continuations.dll
