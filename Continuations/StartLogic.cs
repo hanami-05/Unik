@@ -8,12 +8,12 @@ namespace Continuations
 {
     internal class StartLogic
     {
-        private Task ShowSplashScreenAsync(int exceptionCode)
+        private Task ShowSplashScreenAsync(bool isFaulted)
         {
-            return Task.Factory.StartNew(
+            return Task.Run(
                 () =>
                 {
-                    if (exceptionCode == 0)
+                    if (isFaulted)
                     {
                         throw new Exception("Exception in SplashScreen");
                     }
@@ -23,20 +23,20 @@ namespace Continuations
             );
         }
 
-        private void RequestLicense(int exceptionCode)
+        private void RequestLicense(bool isFaulted)
         {
             Thread.Sleep(1000);
-            if (exceptionCode == 0)
+            if (isFaulted)
             {
                 throw new Exception("Exception in Request License");
             }
             else Console.WriteLine("Request License");
         }
 
-        private void CheckForUpdates(int exceptionCode) 
+        private void CheckForUpdates(bool isFaulted) 
         {
             Thread.Sleep(1500);
-            if (exceptionCode == 0)
+            if (isFaulted)
             {
                 throw new Exception("Exception in Check Updates");
             }
@@ -44,79 +44,86 @@ namespace Continuations
                     
         }
 
-        private void SetupMenus(int exceptionCode) 
+        private void SetupMenus() 
         {
             Thread.Sleep(2000);
-            if (exceptionCode == 0)
-            {
-                throw new Exception("Exception in Setup Menu");
-            }
-            else Console.WriteLine("Setup Menu");
+            Console.WriteLine("Setup Menu");
         }
 
-        private void DownloadUpdates(int exceptionCode) 
+        private void DownloadUpdates() 
         {
             Thread.Sleep(3000);
-            if (exceptionCode == 0)
-            {
-                throw new Exception("Exception in Download Updates");
-            }
-            else Console.WriteLine("Download Updates");
+            Console.WriteLine("Download Updates");
                 
         }
 
-        private void DisplayWelcomeScreen(int exceptionCode) 
+        private void DisplayWelcomeScreen(bool isFaulted) 
         {
             Thread.Sleep(500);
-            if (exceptionCode == 0)
+
+            if (isFaulted) 
             {
-                throw new Exception("Exception in Display Welocome Screen");
+                throw new Exception("Exception in Display Home Screen");
             }
+
             else Console.WriteLine("Display Welocome Screen");
         }
 
-        private void HideSplashScreen(int exceptionCode) 
+        private void HideSplashScreen() 
         {
             Thread.Sleep(700);
-            if (exceptionCode == 0)
-            {
-                throw new Exception("Exception in Hide Splash Screen");
-            }
-            else Console.WriteLine("Hide Splash Screen");
+            Console.WriteLine("Hide Splash Screen");
         }
 
-        public Task SetUpAcync(int[] exceptionCodes) 
+        private void OnFaulted(Task t) { Console.WriteLine(t.Exception?.Message); }
+
+        public Task SetUpAcync(bool[] flags) 
         {
-            Task splashScreenTask = ShowSplashScreenAsync(exceptionCodes[0]);
+            Task splashScreenTask = ShowSplashScreenAsync(flags[0]);
+
+            Task onSplashScreenFaultedTask = splashScreenTask.ContinueWith(
+                 OnFaulted, TaskContinuationOptions.NotOnRanToCompletion
+                );
 
             Task requestLicenseTask = splashScreenTask.ContinueWith(
-                (Task t) => RequestLicense(exceptionCodes[1]),
+                (Task t) => RequestLicense(flags[1]),
                 TaskContinuationOptions.OnlyOnRanToCompletion
                 );
 
             Task checkForUdpatesTask = splashScreenTask.ContinueWith(
-                (Task t) => CheckForUpdates(exceptionCodes[2]),
+                (Task t) => CheckForUpdates(flags[2]),
                 TaskContinuationOptions.OnlyOnRanToCompletion
                 );
 
+            Task onRequestLicenseFaultedTask = requestLicenseTask.ContinueWith(
+                    OnFaulted, TaskContinuationOptions.NotOnRanToCompletion
+                );
+            Task onCheckForUpdatesFaultedTask = checkForUdpatesTask.ContinueWith(
+                    OnFaulted, TaskContinuationOptions.NotOnRanToCompletion
+                );
+
             Task setupMenuTask = requestLicenseTask.ContinueWith(
-                (Task t) => SetupMenus(exceptionCodes[3]),
+                (Task t) => SetupMenus(),
                 TaskContinuationOptions.OnlyOnRanToCompletion
                 );
 
             Task downloadUpdatesTask = checkForUdpatesTask.ContinueWith(
-                (Task t) => DownloadUpdates(exceptionCodes[4]),
+                (Task t) => DownloadUpdates(),
                 TaskContinuationOptions.OnlyOnRanToCompletion
                 );
 
             Task displayWelcomeScreenTask = Task.WhenAll(setupMenuTask, downloadUpdatesTask)
                 .ContinueWith(
-                (Task t) => DisplayWelcomeScreen(exceptionCodes[5]),
+                (Task t) => DisplayWelcomeScreen(flags[3]),
                 TaskContinuationOptions.OnlyOnRanToCompletion
                 );
 
+            Task onDisplayWelcomeScreenFaultedTask = displayWelcomeScreenTask.ContinueWith(
+                    OnFaulted, TaskContinuationOptions.NotOnRanToCompletion
+                );
+
             Task hideSplashScreenTask = displayWelcomeScreenTask.ContinueWith(
-                (Task t) => HideSplashScreen(exceptionCodes[6]),
+                (Task t) => HideSplashScreen(),
                 TaskContinuationOptions.OnlyOnRanToCompletion
                 );
 
