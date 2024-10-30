@@ -5,6 +5,7 @@ using System.Text;
 using System.Globalization;
 using System.Xml.XPath;
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Concurrent;
 
 namespace Movie
 {
@@ -61,10 +62,17 @@ namespace Movie
             }
         }
 
-        internal Dictionary<string, int> GetMoviesCodes(string fileName)
+        internal Task ReadMoviesCodesAsync(string fileName, BlockingCollection<string> lines) 
         {
-            Dictionary<string, int> result = new Dictionary<string, int>();
+            return Task.Factory.StartNew(() => 
+            {
+                ReadMoviesCodes(fileName, lines);
+                lines.CompleteAdding();
+            }, TaskCreationOptions.LongRunning);
+        }
 
+        internal void ReadMoviesCodes(string fileName, BlockingCollection<string> lines)
+        {
             using (StreamReader reader = new StreamReader(fileName, Encoding.UTF8))
             {
                 string line = string.Empty;
@@ -72,18 +80,25 @@ namespace Movie
                 reader.ReadLine();
                 while ((line = reader.ReadLine()) != null)
                 {
-                    if (!line.Contains("RU") && !line.Contains("US")) continue;
-
-                    int id = int.Parse(line.Substring(2,7));
+                    int id = int.Parse(line.Substring(2, 7));
                     int i = line.Substring(10).IndexOf('\t');
                     string s = line.Substring(i + 1);
-                    string title = s.Substring(0, s.IndexOf('\t'));
+                    int k = s.IndexOf('\t');
+                    string title = s.Substring(0,k);
+                    string l = s.Substring(k + 1);
+                    int ind = l.IndexOf('\t');
+                    string lang = l.Substring(0, ind);
+                    
+                    if (!lang.Equals("RU") || !lang.Equals("EN")) continue;
 
-                    result.TryAdd(title, id);
+                    lines.TryAdd($"{id},{title}");
                 }
             }
+        }
 
-            return result;
+        public bool IsMovieLineValid(string line) 
+        {
+            
         }
 
         internal Dictionary<int, double> GetMoviesRatings(string fileName)
@@ -211,85 +226,6 @@ namespace Movie
             }
 
             return result;
-        }
-
-        public async Task<Dictionary<int, HashSet<string>>> GetActorsCodesAsync(string fileName)
-        {
-            Task<Dictionary<int, HashSet<string>>> task = new Task<Dictionary<int, HashSet<string>>>
-                (
-                    () => GetActorsCodes(fileName)
-                );
-            task.Start();
-            await task;
-
-            return task.Result;
-        }
-
-        public async Task<Dictionary<string, int>> GetMoviesCodesAsync(string fileName)
-        {
-            Task<Dictionary<string, int>> task = new Task<Dictionary<string, int>>
-                (
-                    () => GetMoviesCodes(fileName)
-                );
-            task.Start();
-            await task;
-
-            return task.Result;
-        }
-        public async Task<Dictionary<int, double>> GetMoviesRatingsAsync(string fileName)
-        {
-            Task<Dictionary<int, double>> task = new Task<Dictionary<int, double>>
-                (
-                    () => GetMoviesRatings(fileName)
-                );
-            task.Start();
-            await task;
-
-            return task.Result;
-        }
-        public async Task<Dictionary<int, string>> GetActorsNamesAsync(string fileName)
-        {
-            Task<Dictionary<int, string>> task = new Task<Dictionary<int, string>>
-                (
-                    () => GetActorsNames(fileName)
-                );
-            task.Start();
-            await task;
-
-            return task.Result;
-        }
-        public async Task<Dictionary<int, int>> GetCodesLinksAsync(string fileName)
-        {
-            Task<Dictionary<int, int>> task = new Task<Dictionary<int, int>>
-                (
-                    () => GetCodesLinks(fileName)
-                );
-            task.Start();
-            await task;
-
-            return task.Result;
-        }
-        public async Task<Dictionary<int, string>> GetTagsAsync(string fileName) 
-        {
-            Task<Dictionary<int, string>> task = new Task<Dictionary<int, string>>
-                (
-                    () => GetTags(fileName)
-                );
-            task.Start();
-            await task;
-
-            return task.Result;
-        }
-        public async Task<Dictionary<int, HashSet<int>>> GetMoviesTagsAsync(string fileName) 
-        {
-            Task<Dictionary<int, HashSet<int>>> task = new Task<Dictionary<int, HashSet<int>>>
-                (
-                    () => GetMoviesTags(fileName)
-                );
-            task.Start();
-            await task;
-
-            return task.Result;
         }
     }
 }

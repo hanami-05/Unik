@@ -12,13 +12,13 @@ namespace Movie
     public class MoviesRepository
     {
         private DataProvider _provider;
-        private Dictionary<int, HashSet<string>> _actorsCodes;
+        /*private Dictionary<int, HashSet<string>> _actorsCodes;
         private Dictionary<string, int> _moviesCodes;
         private Dictionary<int, double> _moviesRatings;
         private Dictionary<int, string> _actorsNames;
         private Dictionary<int, int> _codesLinks;
         private Dictionary<int, string> _tags;
-        private Dictionary<int, HashSet<int>> _moviesTags;
+        private Dictionary<int, HashSet<int>> _moviesTags;*/
         
         public MoviesRepository() 
         {
@@ -27,7 +27,7 @@ namespace Movie
 
         private void FillData(params string[] filesNames) 
         {
-            Parallel.Invoke
+            /*Parallel.Invoke
                 (
                     () => { _actorsCodes = _provider.GetActorsCodes(filesNames[0]); },
                     () => { _moviesCodes = _provider.GetMoviesCodes(filesNames[1]); },
@@ -36,7 +36,7 @@ namespace Movie
                     () => { _codesLinks = _provider.GetCodesLinks(filesNames[4]); },
                     () => { _tags = _provider.GetTags(filesNames[5]); },
                     () => { _moviesTags = _provider.GetMoviesTags(filesNames[6]); }
-                );
+                );*/
         }
 
         public async Task FillDataAsync(params string[] filesNames) 
@@ -66,25 +66,43 @@ namespace Movie
              _tags = task6.Result;
              _moviesTags = task7.Result;*/
 
-            Task task = new Task
+            /*Task task = new Task
                 (
                     () => FillData(filesNames)
                 );
             task.Start();
-            await task;
+            await task;*/
 
         }
 
-        private BlockingCollection<string> _moviesLines;
-        private BlockingCollection<string> _actorsNamesLines;
-        private BlockingCollection<string> _codesLinksLines;
-        private BlockingCollection<string> _tagIdsLines;
+        private ConcurrentDictionary<int, string> _moviesTitles = new ConcurrentDictionary<int, string>();
+        private ConcurrentDictionary<int, string> _actorsNames = new ConcurrentDictionary<int, string>();
+        private ConcurrentDictionary<int, int> _codeLinks = new ConcurrentDictionary<int, int>();
+        private ConcurrentDictionary<int, string> _tagNames = new ConcurrentDictionary<int, string>();
+        private ConcurrentDictionary<string, HashSet<string>> _moviesActors = new ConcurrentDictionary<string, HashSet<string>>();
+        private ConcurrentDictionary<string, double> _moviesRating = new ConcurrentDictionary<string, double>();
+        private ConcurrentDictionary<string, HashSet<string>> _moviesTags = new ConcurrentDictionary<string, HashSet<string>>();
 
-        private Task FillLinesTask(string moviesFileName, string actorsNamesFileName) 
+        private BlockingCollection<string> _moviesLines = new BlockingCollection<string>();
+        private BlockingCollection<string> _actorsNamesLines = new BlockingCollection<string>();
+        private BlockingCollection<string> _codesLinksLines = new BlockingCollection<string>();
+        private BlockingCollection<string> _tagsLines = new BlockingCollection<string>();
+
+        private BlockingCollection<string> _moviesActorsLines = new BlockingCollection<string>();
+        private BlockingCollection<string> _moviesRatingLines = new BlockingCollection<string>();
+        private BlockingCollection<string> _moviesTagsLines = new BlockingCollection<string>();
+
+        private Task FillMoviesDictionaryAsync() 
         {
-             
+            foreach (string line in _moviesLines.GetConsumingEnumerable()) 
+            {
+                int ind = line.IndexOf(',');
+                int id = Convert.ToInt32(line.Substring(0, ind));
+                string title = line.Substring(ind + 1);
+                _moviesTitles.AddOrUpdate(id, title, (key, value) => value);
+            }
         }
-
+        
         public MovieHandler? MovieAction;
 
         public int GetCount() 

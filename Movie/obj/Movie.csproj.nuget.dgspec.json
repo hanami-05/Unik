@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\с#\\lessons\\Movie\\Movie.csproj": {}
+    "C:\\Users\\79136\\source\\repos\\Lessons\\Movie\\Movie.csproj": {}
   },
   "projects": {
-    "C:\\с#\\lessons\\Movie\\Movie.csproj": {
+    "C:\\Users\\79136\\source\\repos\\Lessons\\Movie\\Movie.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\с#\\lessons\\Movie\\Movie.csproj",
+        "projectUniqueName": "C:\\Users\\79136\\source\\repos\\Lessons\\Movie\\Movie.csproj",
         "projectName": "Movie",
-        "projectPath": "C:\\с#\\lessons\\Movie\\Movie.csproj",
+        "projectPath": "C:\\Users\\79136\\source\\repos\\Lessons\\Movie\\Movie.csproj",
         "packagesPath": "C:\\Users\\79136\\.nuget\\packages\\",
-        "outputPath": "C:\\с#\\lessons\\Movie\\obj\\",
+        "outputPath": "C:\\Users\\79136\\source\\repos\\Lessons\\Movie\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
