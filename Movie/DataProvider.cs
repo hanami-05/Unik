@@ -6,20 +6,19 @@ using System.Globalization;
 using System.Xml.XPath;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Concurrent;
+using System.Security.Cryptography;
 
 namespace Movie
 {
     internal class DataProvider
     {
-        public DataProvider() 
+        public DataProvider()
         {
-            
-        }   
 
-        internal Dictionary<int, HashSet<string>> GetActorsCodes(string fileName) 
+        }
+
+        private void GetActorsCodes(string fileName, BlockingCollection<string> lines)
         {
-            Dictionary<int, HashSet<string>> result = new Dictionary<int, HashSet<string>>();
-
             using (StreamReader reader = new StreamReader(fileName, Encoding.UTF8))
             {
                 string line = string.Empty;
@@ -43,40 +42,20 @@ namespace Movie
 
                     if (/*line.Contains("actor") || line.Contains("director") || line.Contains("actress")*/
                         role.Equals("ac") || role.Equals("di")
-                        ) 
+                        )
                     {
-                        
-                        
-                        int id = int.Parse(strId);
-                        string personId = role + int.Parse(strPersonId);
-
-                        if (result.ContainsKey(id)) result[id].Add(personId);
-                        else
-                        {
-                            result.Add(id, new HashSet<string>() { personId });
-                        }
+                        lines.TryAdd($"{strId},{role + strPersonId}");
                     }
                 }
-
-                return result;
             }
         }
 
-        internal Task ReadMoviesCodesAsync(string fileName, BlockingCollection<string> lines) 
-        {
-            return Task.Factory.StartNew(() => 
-            {
-                ReadMoviesCodes(fileName, lines);
-                lines.CompleteAdding();
-            }, TaskCreationOptions.LongRunning);
-        }
-
-        internal void ReadMoviesCodes(string fileName, BlockingCollection<string> lines)
+        private void ReadMoviesCodes(string fileName, BlockingCollection<string> lines)
         {
             using (StreamReader reader = new StreamReader(fileName, Encoding.UTF8))
             {
                 string line = string.Empty;
-                
+
                 reader.ReadLine();
                 while ((line = reader.ReadLine()) != null)
                 {
@@ -84,11 +63,11 @@ namespace Movie
                     int i = line.Substring(10).IndexOf('\t');
                     string s = line.Substring(i + 1);
                     int k = s.IndexOf('\t');
-                    string title = s.Substring(0,k);
+                    string title = s.Substring(0, k);
                     string l = s.Substring(k + 1);
                     int ind = l.IndexOf('\t');
                     string lang = l.Substring(0, ind);
-                    
+
                     if (!lang.Equals("RU") || !lang.Equals("EN")) continue;
 
                     lines.TryAdd($"{id},{title}");
@@ -96,9 +75,31 @@ namespace Movie
             }
         }
 
-        public bool IsMovieLineValid(string line) 
+        internal Task ReadMoviesCodesAsync(string fileName, BlockingCollection<string> lines)
         {
-            
+            return Task.Factory.StartNew(() =>
+            {
+                ReadMoviesCodes(fileName, lines);
+                lines.CompleteAdding();
+            }, TaskCreationOptions.LongRunning);
+        }
+
+        internal Task AppendToMoviesDictionaryAsync(BlockingCollection<string> lines, ConcurrentDictionary<int, Movie> dict)
+        {
+            return Task.Run(
+                () => {
+                    foreach (string line in lines.GetConsumingEnumerable())
+                    {
+                        int ind = line.IndexOf(',');
+                        int id = Convert.ToInt32(line.Substring(0, ind));
+                        string title = line.Substring(ind + 1);
+
+                        dict.AddOrUpdate(id, new Movie() { Title = title },
+                            (key, movie) => {
+                                movie.Title = $"{movie.Title};{title}"; return movie;
+                            });
+                    }
+                });
         }
 
         internal Dictionary<int, double> GetMoviesRatings(string fileName)
@@ -111,9 +112,9 @@ namespace Movie
 
                 reader.ReadLine();
                 while ((line = reader.ReadLine()) != null)
-                { 
+                {
 
-                    int id = int.Parse(line.Substring(2,7));
+                    int id = int.Parse(line.Substring(2, 7));
                     double rate = double.Parse(line.Substring(10, 3), new NumberFormatInfo()
                     {
                         NumberDecimalSeparator = "."
@@ -126,10 +127,8 @@ namespace Movie
             return result;
         }
 
-        internal Dictionary<int, string> GetActorsNames(string fileName)
+        private void ReadActorsNames(string fileName, BlockingCollection<string> lines)
         {
-            Dictionary<int, string> result = new Dictionary<int, string>();
-
             using (StreamReader reader = new StreamReader(fileName, Encoding.UTF8))
             {
                 string line = string.Empty;
@@ -137,22 +136,41 @@ namespace Movie
                 reader.ReadLine();
                 while ((line = reader.ReadLine()) != null)
                 {
-                    int id = int.Parse(line.Substring(2,7));
-                    
+                    int id = int.Parse(line.Substring(2, 7));
+
                     string s = line.Substring(10);
                     string name = s.Substring(0, s.IndexOf('\t'));
 
-                    result.TryAdd(id, name);
+                    lines.Add($"{id},{name}");
                 }
-
             }
-            return result;
         }
 
-        internal Dictionary<int, int> GetCodesLinks(string fileName)
+        internal Task ReadActorsNamesAsync(string fileName, BlockingCollection<string> lines)
         {
-            Dictionary<int, int> result = new Dictionary<int, int>();
+            return Task.Factory.StartNew(
+                () => {
+                    ReadActorsNames(fileName, lines);
+                    lines.CompleteAdding();
+                }, TaskCreationOptions.LongRunning);
+        }
 
+        internal Task AppendActorsToDictionaryAsync(BlockingCollection<string> lines, ConcurrentDictionary<int, Person> dict)
+        {
+            return Task.Run(
+               () => {
+                   foreach (string line in lines.GetConsumingEnumerable())
+                   {
+                       int ind = line.IndexOf(',');
+                       int id = Convert.ToInt32(line.Substring(0, ind));
+                       string name = line.Substring(ind + 1);
+
+                       dict.AddOrUpdate(id, new Person() { Name = name }, (key, value) => value);
+                   }
+               });
+        }
+        private void ReadCodesLinks(string fileName, BlockingCollection<string> lines)
+        {
             using (StreamReader reader = new StreamReader(fileName, Encoding.UTF8))
             {
                 string line = string.Empty;
@@ -165,17 +183,37 @@ namespace Movie
                     string s = line.Substring(i + 1);
                     int imdbId = int.Parse(s.Substring(0, s.IndexOf(',')));
 
-                    result.Add(imdbId, movieLensId);
+                    lines.Add($"{movieLensId},{imdbId}");
                 }
             }
-
-            return result;
         }
 
-        internal Dictionary<int, string> GetTags(string fileName)
+        internal Task ReadCodesLinksAsync(string fileName, BlockingCollection<string> lines)
         {
-            Dictionary<int, string> result = new Dictionary<int, string>();
+            return Task.Run(
+               () => {
+                   ReadCodesLinks(fileName, lines);
+                   lines.CompleteAdding();
+               });
+        }
 
+        internal Task AppendCodesLinksToDictionaryAsync(BlockingCollection<string> lines, ConcurrentDictionary<int, int> dict) 
+        {
+            return Task.Run(
+                () => {
+                    foreach (string line in lines.GetConsumingEnumerable()) 
+                    {
+                        int ind = line.IndexOf(',');
+                        int movieLensId = Convert.ToInt32(line.Substring(0, ind));
+                        int imdbId = Convert.ToInt32(line.Substring(ind+1));
+
+                        dict.AddOrUpdate(movieLensId, imdbId, (key, value) => value);
+                    }
+                });
+        }
+
+        private void ReadTags(string fileName, BlockingCollection<string> lines)
+        {
             using (StreamReader reader = new StreamReader(fileName, Encoding.UTF8))
             {
                 string line = string.Empty;
@@ -187,11 +225,33 @@ namespace Movie
                     int id = int.Parse(line.Substring(0, i));
                     string tag = line.Substring(i + 1);
 
-                    result.Add(id, tag);
+                    lines.Add($"{id},{tag}");
                 }
             }
+        }
 
-            return result;
+        internal Task ReadTagsAsync(string fileName, BlockingCollection<string> lines) 
+        {
+            return Task.Run(
+                () => {
+                    ReadTags(fileName, lines);
+                    lines.CompleteAdding();
+                });
+        }
+
+        internal Task AppendTagsToDictionaryAsync(BlockingCollection<string> lines, ConcurrentDictionary<int, Tag> dict) 
+        {
+            return Task.Run(
+                () => {
+                    foreach (string line in lines.GetConsumingEnumerable()) 
+                    {
+                        int ind = line.IndexOf(',');
+                        int id = Convert.ToInt32(line.Substring(0, ind));
+                        string tagName = line.Substring(ind + 1);
+
+                        dict.AddOrUpdate(id, new Tag() { TagName = tagName}, (key, value) => value);
+                    }
+                });
         }
 
         internal Dictionary<int, HashSet<int>> GetMoviesTags(string fileName)

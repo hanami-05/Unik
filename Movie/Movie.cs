@@ -6,6 +6,23 @@ using System.Threading.Tasks;
 
 namespace Movie
 {
-    public record class Movie (string Title, HashSet<string> Actors, string Director, HashSet<string> Tags
-        , double Rate);
+    public class Movie 
+    {
+        public Movie() { }
+
+        public Movie(string title, HashSet<string> actors, string director, HashSet<string> tags, double rating) 
+        {
+            Title = title;
+            Actors = actors;
+            Director = director;
+            Tags = tags;
+            Rating = rating;
+        }
+        public string Title { get; set; }
+
+        public HashSet<string> Actors { get; set; }
+        public string Director { get; set; }
+        public HashSet<string> Tags { get; set; }
+        public double Rating { get; set; }
+    }
 }
