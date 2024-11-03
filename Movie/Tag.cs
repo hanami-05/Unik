@@ -11,6 +11,9 @@ namespace Movie
         public string TagName { get; set; }
         public HashSet<Movie> Movies { get; set; }
 
-        public Tag() { }    
+        public Tag() 
+        {
+            Movies = new HashSet<Movie>();
+        }    
     }
 }

@@ -8,21 +8,17 @@ namespace Movie
 {
     public class Movie 
     {
-        public Movie() { }
-
-        public Movie(string title, HashSet<string> actors, string director, HashSet<string> tags, double rating) 
+        public Movie() 
         {
-            Title = title;
-            Actors = actors;
-            Director = director;
-            Tags = tags;
-            Rating = rating;
-        }
-        public string Title { get; set; }
+            Actors = new HashSet<Person>();
+            Tags = new HashSet<Tag>();
 
-        public HashSet<string> Actors { get; set; }
-        public string Director { get; set; }
-        public HashSet<string> Tags { get; set; }
+        }
+
+        public string Title { get; set; }
+        public HashSet<Person> Actors { get; set; }
+        public Person Director { get; set; }
+        public HashSet<Tag> Tags { get; set; }
         public double Rating { get; set; }
     }
 }

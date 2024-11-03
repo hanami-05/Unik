@@ -6,7 +6,7 @@ Random random = new Random();
 int[] randomValues = [random.Next(0, 2), random.Next(0, 2), random.Next(0, 2), random.Next(0, 2)];
 bool[] flags = randomValues.Select(Convert.ToBoolean).ToArray();
 
-flags = [false, false, true, false];
+//flags = [false, false, true, false];
 
 StartLogic appStartLogic = new StartLogic();
 

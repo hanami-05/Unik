@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Continuations")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f7e5436c88066d7f23e74f887c37c13db1563820")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4d260db42d667cdfc734daf24b4c8ff683948a36")]
 [assembly: System.Reflection.AssemblyProductAttribute("Continuations")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Continuations")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -12,7 +12,10 @@ namespace Movie
         public HashSet<Movie> Movies { get; set; }
         public string Job { get; set; }
 
-        public Person() { }
+        public Person() 
+        {
+            Movies = new HashSet<Movie>();
+        }
 
     }
 }
