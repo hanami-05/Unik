@@ -130,13 +130,13 @@ namespace Movie
                     _provider.CheckActorsFilmsLinesAsync(_moviesActorsInput, _moviesActorsFiltered),
                     _provider.ParseActorsFilmsLinesAsync(_moviesActorsFiltered, _moviesActorsOutput),
                     _provider.AppendActorsDirectorsToMoviesDictionaryAsync(_moviesActorsOutput, _movies, _actors),
-                    _provider.AppendMoviesToActorAsync(_moviesActorsOutput, _actors, _movies),
+                  //  _provider.AppendMoviesToActorAsync(_moviesActorsOutput, _actors, _movies),
 
                    _provider.ReadMoviesTagsAsync(fileNames[5], _moviesTagsInput),
                     _provider.CheckTagsFilmsAsync(_moviesTagsInput, _moviesTagsFiltered),
                     _provider.ParseMoviesTagsLinesAsync(_moviesTagsFiltered, _moviesTagsOutput),
                     _provider.AppendTagsToMoviesDictionaryAsync(_moviesTagsOutput, _movies, _tags, _codeLinks),
-                    _provider.AppendMoviesToTagAsync(_moviesTagsOutput, _tags, _movies, _codeLinks),
+                   // _provider.AppendMoviesToTagAsync(_moviesTagsOutput, _tags, _movies, _codeLinks),
 
                     _provider.ReadMoviesRatingsAsync(fileNames[6], _moviesRatingsInput),
                     _provider.ParseMoviesRatingLinesAsync(_moviesRatingsInput, _moviesRatingOutput),

@@ -18,9 +18,11 @@ Console.WriteLine($"Ready: {endTime - startTime}");
 
 var dict = repository.Tags;
 var dict2 = repository.ActorsAndDirectors;
-
+var dict3 = repository.Movies;
 int c = 0;
 int k = 0;
+int d = 0;
+int h = 0;
 foreach (var item in dict2)
 {
     if (item.Value.Movies.Count >= 1) k++;
@@ -30,6 +32,13 @@ foreach (var item in dict)
 {
     if (item.Value.Movies.Count >= 1) c++;
 }
+foreach (var item in dict3) 
+{
+    if (item.Value.Tags.Count >= 1) h++;
+    if (item.Value.Actors.Count >= 1 || item.Value.Director != null) d++;
+}
 Console.WriteLine(c);
 Console.WriteLine(k);
+Console.WriteLine(d);
+Console.WriteLine(h);
 Console.ReadKey();

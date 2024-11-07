@@ -63,15 +63,14 @@ namespace Movie
 
                         output.Add($"{strId},{strPersonId},{role}");
                     }
-
                     output.CompleteAdding();
                 }, TaskCreationOptions.LongRunning);
         }
-        internal Task AppendActorsDirectorsToMoviesDictionaryAsync(BlockingCollection<string> lines, ConcurrentDictionary<int, Film> dict, ConcurrentDictionary<int, Person> actors)
+        internal Task AppendActorsDirectorsToMoviesDictionaryAsync(BlockingCollection<string> lines, ConcurrentDictionary<int, Film> films, ConcurrentDictionary<int, Person> actors)
         {
             return Task.Factory.StartNew(
                 () => {
-                    foreach (string line in lines)
+                    foreach (string line in lines.GetConsumingEnumerable())
                     {
                         int ind = line.IndexOf(',');
                         int filmId = Convert.ToInt32(line.Substring(0, ind));
@@ -80,7 +79,7 @@ namespace Movie
                         int personId = Convert.ToInt32(c.Substring(0, ind));
                         string role = c.Substring(ind + 1);
 
-                        if (!actors.ContainsKey(personId) || !dict.ContainsKey(filmId)) continue;
+                        if (!actors.ContainsKey(personId) || !films.ContainsKey(filmId)) continue;
 
                         switch (role)
                         {
@@ -88,10 +87,16 @@ namespace Movie
                                 
                                 actors[personId].Job = "director";
 
-                                dict.AddOrUpdate(filmId, new Film(), (key, movie) =>
+                                films.AddOrUpdate(filmId, new Film(), (key, movie) =>
                                 {
                                     movie.Director = actors[personId];
                                     return movie;
+                                });
+
+                                actors.AddOrUpdate(personId, new Person(), (key, person) =>
+                                {
+                                    person.Movies.Add(films[filmId]);
+                                    return person;
                                 });
 
                                 break;
@@ -99,10 +104,16 @@ namespace Movie
                             case "actre":
                                 actors[personId].Job = "actress";
 
-                                dict.AddOrUpdate(filmId, new Film(), (key, movie) =>
+                                films.AddOrUpdate(filmId, new Film(), (key, movie) =>
                                 {
                                     movie.Actors.Add(actors[personId]);
                                     return movie;
+                                });
+
+                                actors.AddOrUpdate(personId, new Person(), (key, person) =>
+                                {
+                                    person.Movies.Add(films[filmId]);
+                                    return person;
                                 });
 
                                 break;
@@ -110,10 +121,16 @@ namespace Movie
                             default:
                                 actors[personId].Job = "actor";
 
-                                dict.AddOrUpdate(filmId, new Film(), (key, movie) =>
+                                films.AddOrUpdate(filmId, new Film(), (key, movie) =>
                                 {
                                     movie.Actors.Add(actors[personId]);
                                     return movie;
+                                });
+
+                                actors.AddOrUpdate(personId, new Person(), (key, person) =>
+                                {
+                                    person.Movies.Add(films[filmId]);
+                                    return person;
                                 });
 
                                 break;
@@ -466,7 +483,7 @@ namespace Movie
         internal Task ParseMoviesTagsLinesAsync(BlockingCollection<string> input, BlockingCollection<string> output) 
         {
             return Task.Factory.StartNew(() => {
-                foreach (string line in input.GetConsumingEnumerable()) 
+                foreach (string line in input.GetConsumingEnumerable())
                 {
                     int i = line.IndexOf(',');
 
@@ -478,11 +495,11 @@ namespace Movie
                 output.CompleteAdding();
             }, TaskCreationOptions.LongRunning);
         }
-        internal Task AppendTagsToMoviesDictionaryAsync(BlockingCollection<string> lines, ConcurrentDictionary<int, Film> dict, ConcurrentDictionary<int, Tag> tags, ConcurrentDictionary<int, int> codeLinks) 
+        internal Task AppendTagsToMoviesDictionaryAsync(BlockingCollection<string> lines, ConcurrentDictionary<int, Film> films, ConcurrentDictionary<int, Tag> tags, ConcurrentDictionary<int, int> codeLinks) 
         {
             return Task.Factory.StartNew(
                 () => {
-                    foreach (string line in lines) 
+                    foreach (string line in lines.GetConsumingEnumerable()) 
                     {
                         int ind = line.IndexOf(',');
                         int id = Convert.ToInt32(line.Substring(0, ind));
@@ -491,12 +508,18 @@ namespace Movie
                         if (!codeLinks.ContainsKey(id) || !tags.ContainsKey(tagId)) continue;
                         id = codeLinks[id];
 
-                        if (!dict.ContainsKey(id)) continue;
+                        if (!films.ContainsKey(id)) continue;
 
-                        dict.AddOrUpdate(id, new Film(), (key, movie) => 
+                        films.AddOrUpdate(id, new Film(), (key, movie) => 
                         {
                             movie.Tags.Add(tags[tagId]);
                             return movie;
+                        });
+
+                        tags.AddOrUpdate(tagId, new Tag(), (key, tag) =>
+                        {
+                            tag.Movies.Add(films[id]);
+                            return tag;
                         });
                     }
                 }, TaskCreationOptions.LongRunning);
