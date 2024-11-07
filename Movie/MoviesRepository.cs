@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Movie
 {
-    public delegate void MovieHandler(Movie? movie);
+    public delegate void MovieHandler(Film? movie);
     public class MoviesRepository
     {
         private DataProvider _provider;
@@ -75,78 +75,75 @@ namespace Movie
 
         }
 
-        private ConcurrentDictionary<int, string> _moviesTitles = new ConcurrentDictionary<int, string>();
-        private ConcurrentDictionary<int, string> _actorsNames = new ConcurrentDictionary<int, string>();
-        private ConcurrentDictionary<int, int> _codeLinks = new ConcurrentDictionary<int, int>();
-        private ConcurrentDictionary<int, string> _tagNames = new ConcurrentDictionary<int, string>();
-        private ConcurrentDictionary<string, HashSet<string>> _moviesActors = new ConcurrentDictionary<string, HashSet<string>>();
-        private ConcurrentDictionary<string, double> _moviesRating = new ConcurrentDictionary<string, double>();
-        private ConcurrentDictionary<string, HashSet<string>> _moviesTags = new ConcurrentDictionary<string, HashSet<string>>();
-
-        private BlockingCollection<string> _moviesLines = new BlockingCollection<string>();
-        private BlockingCollection<string> _actorsNamesLines = new BlockingCollection<string>();
-        private BlockingCollection<string> _codesLinksLines = new BlockingCollection<string>();
-        private BlockingCollection<string> _tagsLines = new BlockingCollection<string>();
-
-        private BlockingCollection<string> _moviesActorsLines = new BlockingCollection<string>();
-        private BlockingCollection<string> _moviesRatingLines = new BlockingCollection<string>();
-        private BlockingCollection<string> _moviesTagsLines = new BlockingCollection<string>();
-
-        private Task FillMoviesDictionaryAsync() 
-        {
-            foreach (string line in _moviesLines.GetConsumingEnumerable()) 
-            {
-                int ind = line.IndexOf(',');
-                int id = Convert.ToInt32(line.Substring(0, ind));
-                string title = line.Substring(ind + 1);
-                _moviesTitles.AddOrUpdate(id, title, (key, value) => value);
-            }
-        }
+        private BlockingCollection<string> _moviesInput = new BlockingCollection<string>();
+        private BlockingCollection<string> _moviesFiltered = new BlockingCollection<string>();
+        private BlockingCollection<string> _moviesOutput = new BlockingCollection<string>();
+        private BlockingCollection<string> _actorsNamesInput = new BlockingCollection<string>();
+        private BlockingCollection<string> _actorsNamesOuput = new BlockingCollection<string>();
+        private BlockingCollection<string> _tagsInput = new BlockingCollection<string>();
+        private BlockingCollection<string> _tagsOutput = new BlockingCollection<string>();
+        private BlockingCollection<string> _codesLinksInput = new BlockingCollection<string>();
+        private BlockingCollection<string> _codesLinksOuput = new BlockingCollection<string>();
+        private BlockingCollection<string> _moviesActorsInput = new BlockingCollection<string>();
+        private BlockingCollection<string> _moviesActorsFiltered = new BlockingCollection<string>();
+        private BlockingCollection<string> _moviesActorsOutput = new BlockingCollection<string>();
+        private BlockingCollection<string> _moviesRatingsInput = new BlockingCollection<string>();
+        private BlockingCollection<string> _moviesRatingOutput = new BlockingCollection<string>();
+        private BlockingCollection<string> _moviesTagsInput = new BlockingCollection<string>();
+        private BlockingCollection<string> _moviesTagsFiltered = new BlockingCollection<string>();
+        private BlockingCollection<string> _moviesTagsOutput = new BlockingCollection<string>();
         
-        public MovieHandler? MovieAction;
+        public ConcurrentDictionary<int, Film> Movies { get => _movies; }
+        public ConcurrentDictionary<int, Person> ActorsAndDirectors { get => _actors; }
+        public ConcurrentDictionary<int, Tag> Tags {  get => _tags; }
+        
+        private ConcurrentDictionary<int, Film> _movies = new ConcurrentDictionary<int, Film>();
+        private ConcurrentDictionary<int, Person> _actors = new ConcurrentDictionary<int, Person>();
+        private ConcurrentDictionary<int, Tag> _tags = new ConcurrentDictionary<int, Tag>();
+        private ConcurrentDictionary<int, int> _codeLinks = new ConcurrentDictionary<int, int>();
 
-        public int GetCount() 
+        public async Task LoadDataAsync(params string[] fileNames)
         {
-            return _actorsCodes.Count + _actorsNames.Count + _codesLinks.Count + _tags.Count + _moviesTags.Count
-                + _moviesRatings.Count + _moviesCodes.Count;
-        }
+            Task firstTask = Task.WhenAll(
+                _provider.ReadMoviesCodesAsync(fileNames[0], _moviesInput),
+                _provider.CheckMoviesCodesAsync(_moviesInput, _moviesFiltered),
+                _provider.ParseMoviesCodesLinesAsync(_moviesFiltered, _moviesOutput),
+                _provider.AppendToMoviesDictionaryAsync(_moviesOutput, _movies),
 
-        public Movie? GetMovieByTitle(string title) 
-        {
-            int code = _moviesCodes.GetValueOrDefault(title);
+                _provider.ReadActorsNamesAsync(fileNames[1], _actorsNamesInput),
+                _provider.ParseActorsNamesLinesAsync(_actorsNamesInput, _actorsNamesOuput),
+                _provider.AppendActorsToDictionaryAsync(_actorsNamesOuput, _actors),
 
-            if (code != 0)
-            {
-                HashSet<string> actors = new HashSet<string>
-                    (
-                        _actorsCodes.GetValueOrDefault(code).Where(person => person[0] == 'a')
-                        .Select(person => _actorsNames[int.Parse(person.Substring(2))])
-                    );
-                string director = _actorsNames[int.Parse(_actorsCodes.GetValueOrDefault(code)
-                    .Where(person => person[0] == 'd').FirstOrDefault().Substring(2))];
-                    
-                int movieLensId = _codesLinks.GetValueOrDefault(code);
-                HashSet<string> tags = new HashSet<string>();
-                
-                if (movieLensId != 0) 
-                {
-                    tags = new HashSet<string>
-                        (
-                            _moviesTags.GetValueOrDefault(movieLensId).Select(tag => _tags[tag])
-                        );
-                }
+                _provider.ReadTagsAsync(fileNames[2], _tagsInput),
+                _provider.ParseTagsLinesAsync(_tagsInput, _tagsOutput),
+                _provider.AppendTagsToDictionaryAsync(_tagsOutput, _tags),
 
-                double rating = _moviesRatings.GetValueOrDefault(code);
+                _provider.ReadCodesLinksAsync(fileNames[3], _codesLinksInput),
+                _provider.ParseCodeLinksLinesAsync(_codesLinksInput, _codesLinksOuput),
+                _provider.AppendCodesLinksToDictionaryAsync(_codesLinksOuput, _codeLinks)
+                );
 
-                Movie result = new Movie(title, actors, director, tags, rating);
+            await firstTask;
 
-                MovieAction?.Invoke(result);
+            Task secondTask = Task.WhenAll(
+                    _provider.ReadActorsFilmsAsync(fileNames[4], _moviesActorsInput),
+                    _provider.CheckActorsFilmsLinesAsync(_moviesActorsInput, _moviesActorsFiltered),
+                    _provider.ParseActorsFilmsLinesAsync(_moviesActorsFiltered, _moviesActorsOutput),
+                    _provider.AppendActorsDirectorsToMoviesDictionaryAsync(_moviesActorsOutput, _movies, _actors),
+                    _provider.AppendMoviesToActorAsync(_moviesActorsOutput, _actors, _movies),
 
-                return result;
-            }
+                   _provider.ReadMoviesTagsAsync(fileNames[5], _moviesTagsInput),
+                    _provider.CheckTagsFilmsAsync(_moviesTagsInput, _moviesTagsFiltered),
+                    _provider.ParseMoviesTagsLinesAsync(_moviesTagsFiltered, _moviesTagsOutput),
+                    _provider.AppendTagsToMoviesDictionaryAsync(_moviesTagsOutput, _movies, _tags, _codeLinks),
+                    _provider.AppendMoviesToTagAsync(_moviesTagsOutput, _tags, _movies, _codeLinks),
 
-            MovieAction?.Invoke(null);
-            return null;
+                    _provider.ReadMoviesRatingsAsync(fileNames[6], _moviesRatingsInput),
+                    _provider.ParseMoviesRatingLinesAsync(_moviesRatingsInput, _moviesRatingOutput),
+                    _provider.AppendRatingToMoviesDictionaryAsync(_moviesRatingOutput, _movies)
+                );
+
+            await secondTask;
         }
     }
 }

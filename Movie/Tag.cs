@@ -9,11 +9,21 @@ namespace Movie
     public class Tag 
     {
         public string TagName { get; set; }
-        public HashSet<Movie> Movies { get; set; }
+        public HashSet<Film> Movies { get; set; }
 
         public Tag() 
         {
-            Movies = new HashSet<Movie>();
-        }    
+            Movies = new HashSet<Film>();
+        }
+
+        public string GetInfo() 
+        {
+            string res = string.Empty;
+            res += $"Tag Name: {TagName}\n";
+            res += "Movies:\n";
+            foreach (Film movie in Movies) res += $"{movie.Title}\n\n";
+
+            return res;
+        }
     }
 }
