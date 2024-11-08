@@ -21,7 +21,7 @@ namespace Movie
         public HashSet<Tag> Tags { get; set; }
         public double Rating { get; set; }
 
-        public string GetInfo() 
+        public override string ToString() 
         {
             string res = string.Empty;
 

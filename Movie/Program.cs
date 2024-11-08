@@ -19,7 +19,7 @@ Console.WriteLine($"Ready: {endTime - startTime}");
 var dict = repository.Tags;
 var dict2 = repository.ActorsAndDirectors;
 var dict3 = repository.Movies;
-int c = 0;
+/*int c = 0;
 int k = 0;
 int d = 0;
 int h = 0;
@@ -40,5 +40,5 @@ foreach (var item in dict3)
 Console.WriteLine(c);
 Console.WriteLine(k);
 Console.WriteLine(d);
-Console.WriteLine(h);
+Console.WriteLine(h);*/
 Console.ReadKey();
