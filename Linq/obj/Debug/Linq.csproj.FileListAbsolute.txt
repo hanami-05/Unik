@@ -1,0 +1,7 @@
+C:\с#\lessons\Linq\bin\Debug\Linq.exe.config
+C:\с#\lessons\Linq\bin\Debug\Linq.exe
+C:\с#\lessons\Linq\bin\Debug\Linq.pdb
+C:\с#\lessons\Linq\obj\Debug\Linq.csproj.AssemblyReference.cache
+C:\с#\lessons\Linq\obj\Debug\Linq.csproj.CoreCompileInputs.cache
+C:\с#\lessons\Linq\obj\Debug\Linq.exe
+C:\с#\lessons\Linq\obj\Debug\Linq.pdb

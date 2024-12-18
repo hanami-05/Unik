@@ -1,0 +1,14 @@
+C:\с#\lessons\Linq\PLINQ\bin\Debug\net8.0\PLINQ.exe
+C:\с#\lessons\Linq\PLINQ\bin\Debug\net8.0\PLINQ.deps.json
+C:\с#\lessons\Linq\PLINQ\bin\Debug\net8.0\PLINQ.runtimeconfig.json
+C:\с#\lessons\Linq\PLINQ\bin\Debug\net8.0\PLINQ.dll
+C:\с#\lessons\Linq\PLINQ\bin\Debug\net8.0\PLINQ.pdb
+C:\с#\lessons\Linq\PLINQ\obj\Debug\net8.0\PLINQ.GeneratedMSBuildEditorConfig.editorconfig
+C:\с#\lessons\Linq\PLINQ\obj\Debug\net8.0\PLINQ.AssemblyInfoInputs.cache
+C:\с#\lessons\Linq\PLINQ\obj\Debug\net8.0\PLINQ.AssemblyInfo.cs
+C:\с#\lessons\Linq\PLINQ\obj\Debug\net8.0\PLINQ.csproj.CoreCompileInputs.cache
+C:\с#\lessons\Linq\PLINQ\obj\Debug\net8.0\PLINQ.dll
+C:\с#\lessons\Linq\PLINQ\obj\Debug\net8.0\refint\PLINQ.dll
+C:\с#\lessons\Linq\PLINQ\obj\Debug\net8.0\PLINQ.pdb
+C:\с#\lessons\Linq\PLINQ\obj\Debug\net8.0\PLINQ.genruntimeconfig.cache
+C:\с#\lessons\Linq\PLINQ\obj\Debug\net8.0\ref\PLINQ.dll

@@ -2,6 +2,8 @@
 using System.Globalization;
 using System.Collections.Concurrent;
 using System.Data;
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
 
 
 namespace Movie
@@ -38,9 +40,9 @@ namespace Movie
                     foreach (string line in input.GetConsumingEnumerable()) 
                     {
                         int ind = line.IndexOf('\t', line.IndexOf('\t', line.IndexOf('\t') +1 ) + 1);
-                        string role = line.Substring(ind+1, 5);
+                        string role = line.Substring(ind+1, 4);
 
-                        if (role.Equals("direc") || role.Equals("actor") || role.Equals("actre"))
+                        if (role.Equals("dire") || role.Equals("acto") || role.Equals("actr"))
                             output.Add(line);
                     }
                     output.CompleteAdding();
@@ -79,86 +81,112 @@ namespace Movie
                         int personId = Convert.ToInt32(c.Substring(0, ind));
                         string role = c.Substring(ind + 1);
 
-                        if (!actors.ContainsKey(personId) || !films.ContainsKey(filmId)) continue;
-
                         switch (role)
                         {
-                            case "direc":
-                                
-                                actors[personId].Job = "director";
+                            case "dire":
 
-                                films.AddOrUpdate(filmId, new Film(), (key, movie) =>
-                                {
-                                    movie.Director = actors[personId];
-                                    return movie;
-                                });
 
-                                actors.AddOrUpdate(personId, new Person(), (key, person) =>
+                            if (!actors.ContainsKey(personId))
+                            {
+                                Person addedPerson = new Person();
+                                addedPerson.Job = "director";
+                                films.AddOrUpdate(filmId,
+                                    new Film() { Director = addedPerson },
+                                    (key, movie) => 
+                                    {
+                                        movie.Director = addedPerson;
+                                        return movie;
+                                    });
+
+                                    addedPerson.Movies.Add(films[filmId]);
+                                    actors.TryAdd(personId, addedPerson);
+                                }
+
+                                else 
                                 {
-                                    person.Movies.Add(films[filmId]);
-                                    return person;
-                                });
+                                    films.AddOrUpdate(filmId, 
+                                    new Film() { Director =  actors[personId] },
+									(key, movie) =>
+									{
+                                        movie.Director = actors[personId];
+										return movie;
+									});
+                                    actors[personId].Movies.Add(films[filmId]);
+								}
 
                                 break;
 
-                            case "actre":
-                                actors[personId].Job = "actress";
+                            case "actr":
+								if (!actors.ContainsKey(personId))
+								{
+                                    Person addedPerson = new Person();
+									addedPerson.Job = "actress";
 
-                                films.AddOrUpdate(filmId, new Film(), (key, movie) =>
-                                {
-                                    movie.Actors.Add(actors[personId]);
-                                    return movie;
-                                });
+                                    films.AddOrUpdate(filmId,
+									new Film() { Actors = new HashSet<Person>() { addedPerson } },
+									(key, movie) =>
+									{
+										movie.Actors.Add(addedPerson);
+										return movie;
+									});
 
-                                actors.AddOrUpdate(personId, new Person(), (key, person) =>
-                                {
-                                    person.Movies.Add(films[filmId]);
-                                    return person;
-                                });
+									addedPerson.Movies.Add(films[filmId]);
+									actors.TryAdd(personId, addedPerson);
+								}
 
-                                break;
+								else
+								{
+                                    films.AddOrUpdate(filmId,
+									new Film() { Actors = new HashSet<Person>() { actors[personId] } },
+									(key, movie) =>
+									{
+										movie.Actors.Add(actors[personId]);
+										return movie;
+									});
+
+									actors[personId].Movies.Add(films[filmId]);
+								}
+
+								break;
 
                             default:
-                                actors[personId].Job = "actor";
+                                if (!actors.ContainsKey(personId))
+								{
+                                    Person addedPerson = new Person();
+									addedPerson.Job = "actor";
 
-                                films.AddOrUpdate(filmId, new Film(), (key, movie) =>
-                                {
-                                    movie.Actors.Add(actors[personId]);
-                                    return movie;
-                                });
+                                    films.AddOrUpdate(filmId,
+									new Film() { Actors = new HashSet<Person>() { addedPerson } },
+									(key, movie) =>
+									{
+										movie.Actors.Add(addedPerson);
+										return movie;
+									});
 
-                                actors.AddOrUpdate(personId, new Person(), (key, person) =>
-                                {
-                                    person.Movies.Add(films[filmId]);
-                                    return person;
-                                });
+									addedPerson.Movies.Add(films[filmId]);
+									actors.TryAdd(personId, addedPerson);
+								}
+
+								else
+								{
+                                    films.AddOrUpdate(filmId,
+									new Film() { Actors = new HashSet<Person>() { actors[personId] } },
+									(key, movie) =>
+									{
+										movie.Actors.Add(actors[personId]);
+										return movie;
+									});
+
+									actors[personId].Movies.Add(films[filmId]);
+								}
+
+                                
 
                                 break;
                         }
 
                     }
                 }, TaskCreationOptions.LongRunning);
-        }
-
-        internal Task AppendMoviesToActorAsync(BlockingCollection<string> lines, ConcurrentDictionary<int, Person> actors, ConcurrentDictionary<int, Film> movies) 
-        {
-            return Task.Factory.StartNew(
-                () => { 
-                    foreach (string line in lines)
-                    {
-                        int ind = line.IndexOf(',');
-                        int filmId = Convert.ToInt32(line.Substring(0, ind));
-                        string c = line.Substring(ind + 1);
-                        ind = c.IndexOf(',');
-                        int personId = Convert.ToInt32(c.Substring(0, ind));
-
-                        if (!actors.ContainsKey(personId) || !movies.ContainsKey(filmId)) continue;
-
-                        actors[personId].Movies.Add(movies[filmId]);
-                        string s = movies[filmId].Title;
-                        var a = actors[personId].Movies;
-                    }
-            }, TaskCreationOptions.LongRunning);
         }
 
         internal Task ReadMoviesCodesAsync(string fileName, BlockingCollection<string> lines)
@@ -226,7 +254,11 @@ namespace Movie
 
                         dict.AddOrUpdate(id, new Film() { Title = title },
                             (key, movie) => {
-                                movie.Title = $"{movie.Title};{title}"; return movie;
+                                movie.Title = title;
+                                Film f = movie;
+                                if (movie.Actors.Count > 0)
+                                    Console.WriteLine();
+                                return movie;
                             });
                     }
                 });
@@ -336,7 +368,11 @@ namespace Movie
                        int id = Convert.ToInt32(line.Substring(0, ind));
                        string name = line.Substring(ind + 1);
 
-                       dict.AddOrUpdate(id, new Person() { Name = name }, (key, value) => value);
+                       dict.AddOrUpdate(id, new Person(), (key, person) => 
+                       {
+                           person.Name = name;
+                           return person;
+					   });
                    }
                }, TaskCreationOptions.LongRunning);
         }
@@ -521,26 +557,6 @@ namespace Movie
                             tag.Movies.Add(films[id]);
                             return tag;
                         });
-                    }
-                }, TaskCreationOptions.LongRunning);
-        }
-
-        internal Task AppendMoviesToTagAsync(BlockingCollection<string> lines, ConcurrentDictionary<int, Tag> tags, ConcurrentDictionary<int, Film> movies, ConcurrentDictionary<int, int> codeLinks)  
-        {
-            return Task.Factory.StartNew(
-                () => {
-                    foreach (string line in lines) 
-                    {
-                        int ind = line.IndexOf(',');
-                        int id = Convert.ToInt32(line.Substring(0, ind));
-                        int tagId = Convert.ToInt32(line.Substring(ind + 1));
-
-                        if (!codeLinks.ContainsKey(id) || !tags.ContainsKey(tagId)) continue;
-                        
-                        id = codeLinks[id];
-                        if (!movies.ContainsKey(id)) continue;
-                        
-                        tags[tagId].Movies.Add(movies[id]);
                     }
                 }, TaskCreationOptions.LongRunning);
         }

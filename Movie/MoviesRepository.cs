@@ -110,11 +110,13 @@ namespace Movie
                 _provider.ParseMoviesCodesLinesAsync(_moviesFiltered, _moviesOutput),
                 _provider.AppendToMoviesDictionaryAsync(_moviesOutput, _movies),
 
-                _provider.ReadActorsNamesAsync(fileNames[1], _actorsNamesInput),
-                _provider.ParseActorsNamesLinesAsync(_actorsNamesInput, _actorsNamesOuput),
-                _provider.AppendActorsToDictionaryAsync(_actorsNamesOuput, _actors),
+				_provider.ReadActorsFilmsAsync(fileNames[4], _moviesActorsInput),
+			    _provider.CheckActorsFilmsLinesAsync(_moviesActorsInput, _moviesActorsFiltered),
+				_provider.ParseActorsFilmsLinesAsync(_moviesActorsFiltered, _moviesActorsOutput),
+				_provider.AppendActorsDirectorsToMoviesDictionaryAsync(_moviesActorsOutput, _movies, _actors),
 
-                _provider.ReadTagsAsync(fileNames[2], _tagsInput),
+
+				_provider.ReadTagsAsync(fileNames[2], _tagsInput),
                 _provider.ParseTagsLinesAsync(_tagsInput, _tagsOutput),
                 _provider.AppendTagsToDictionaryAsync(_tagsOutput, _tags),
 
@@ -126,17 +128,15 @@ namespace Movie
             await firstTask;
 
             Task secondTask = Task.WhenAll(
-                    _provider.ReadActorsFilmsAsync(fileNames[4], _moviesActorsInput),
-                    _provider.CheckActorsFilmsLinesAsync(_moviesActorsInput, _moviesActorsFiltered),
-                    _provider.ParseActorsFilmsLinesAsync(_moviesActorsFiltered, _moviesActorsOutput),
-                    _provider.AppendActorsDirectorsToMoviesDictionaryAsync(_moviesActorsOutput, _movies, _actors),
-                  //  _provider.AppendMoviesToActorAsync(_moviesActorsOutput, _actors, _movies),
-
-                   _provider.ReadMoviesTagsAsync(fileNames[5], _moviesTagsInput),
+                   
+                    _provider.ReadActorsNamesAsync(fileNames[1], _actorsNamesInput),
+				    _provider.ParseActorsNamesLinesAsync(_actorsNamesInput, _actorsNamesOuput),
+                    _provider.AppendActorsToDictionaryAsync(_actorsNamesOuput, _actors),
+				    
+                    _provider.ReadMoviesTagsAsync(fileNames[5], _moviesTagsInput),
                     _provider.CheckTagsFilmsAsync(_moviesTagsInput, _moviesTagsFiltered),
                     _provider.ParseMoviesTagsLinesAsync(_moviesTagsFiltered, _moviesTagsOutput),
                     _provider.AppendTagsToMoviesDictionaryAsync(_moviesTagsOutput, _movies, _tags, _codeLinks),
-                   // _provider.AppendMoviesToTagAsync(_moviesTagsOutput, _tags, _movies, _codeLinks),
 
                     _provider.ReadMoviesRatingsAsync(fileNames[6], _moviesRatingsInput),
                     _provider.ParseMoviesRatingLinesAsync(_moviesRatingsInput, _moviesRatingOutput),
@@ -144,6 +144,32 @@ namespace Movie
                 );
 
             await secondTask;
+        }
+
+        public async Task ReadFiles(params string[] fileNames) 
+        {
+            await _provider.ReadMoviesCodesAsync(fileNames[0], _moviesInput);
+            await _provider.ReadActorsNamesAsync(fileNames[1], _actorsNamesInput);
+            await _provider.ReadTagsAsync(fileNames[2], _tagsInput);
+            await _provider.ReadCodesLinksAsync(fileNames[3], _codesLinksInput);
+            await _provider.ReadActorsFilmsAsync(fileNames[4], _moviesActorsInput);
+            await _provider.ReadMoviesTagsAsync(fileNames[5], _moviesTagsInput);
+            await _provider.ReadMoviesRatingsAsync(fileNames[6], _moviesRatingsInput);
+
+        }
+
+        public async Task ReadFilesAsync(params string[] fileNames) 
+        {
+            await Task.WhenAll (
+                _provider.ReadMoviesCodesAsync(fileNames[0], _moviesInput),
+                _provider.ReadActorsNamesAsync(fileNames[1], _actorsNamesInput),
+                _provider.ReadTagsAsync(fileNames[2], _tagsInput),
+                _provider.ReadCodesLinksAsync(fileNames[3], _codesLinksInput),
+                _provider.ReadActorsFilmsAsync(fileNames[4], _moviesActorsInput),
+                _provider.ReadMoviesTagsAsync(fileNames[5], _moviesTagsInput),
+                _provider.ReadMoviesRatingsAsync(fileNames[6], _moviesRatingsInput)
+
+                );
         }
     }
 }

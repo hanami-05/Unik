@@ -1,0 +1,15 @@
+C:\Users\79136\source\repos\Lessons\Movie\bin\Release\net8.0\Movie.exe
+C:\Users\79136\source\repos\Lessons\Movie\bin\Release\net8.0\Movie.deps.json
+C:\Users\79136\source\repos\Lessons\Movie\bin\Release\net8.0\Movie.runtimeconfig.json
+C:\Users\79136\source\repos\Lessons\Movie\bin\Release\net8.0\Movie.dll
+C:\Users\79136\source\repos\Lessons\Movie\bin\Release\net8.0\Movie.pdb
+C:\Users\79136\source\repos\Lessons\Movie\obj\Release\net8.0\Movie.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\79136\source\repos\Lessons\Movie\obj\Release\net8.0\Movie.AssemblyInfoInputs.cache
+C:\Users\79136\source\repos\Lessons\Movie\obj\Release\net8.0\Movie.AssemblyInfo.cs
+C:\Users\79136\source\repos\Lessons\Movie\obj\Release\net8.0\Movie.csproj.CoreCompileInputs.cache
+C:\Users\79136\source\repos\Lessons\Movie\obj\Release\net8.0\Movie.sourcelink.json
+C:\Users\79136\source\repos\Lessons\Movie\obj\Release\net8.0\Movie.dll
+C:\Users\79136\source\repos\Lessons\Movie\obj\Release\net8.0\refint\Movie.dll
+C:\Users\79136\source\repos\Lessons\Movie\obj\Release\net8.0\Movie.pdb
+C:\Users\79136\source\repos\Lessons\Movie\obj\Release\net8.0\Movie.genruntimeconfig.cache
+C:\Users\79136\source\repos\Lessons\Movie\obj\Release\net8.0\ref\Movie.dll
