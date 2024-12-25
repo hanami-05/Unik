@@ -22,6 +22,29 @@ namespace Movie
         public HashSet<Tag> Tags { get; set; }
         public double Rating { get; set; }
 
+        public double GetSimilarity(Film film) 
+        {
+            double pMark = 0;
+            double tMark = 0;
+            HashSet<string> pNames = Actors.Select(actor => actor.Name).ToHashSet();
+            HashSet<string> tNames = Tags.Select(tag => tag.TagName).ToHashSet();
+
+            if (pNames.Count == 0) pMark = 0;
+            else 
+            {
+				int pCount = film.Actors.Select(actor => actor.Name).Where(name => pNames.Contains(name)).Count();
+                pMark = pCount/pNames.Count;
+			}
+            if (tNames.Count == 0) tMark = 0;
+            else 
+            {
+				int tCount = film.Tags.Select(tag => tag.TagName).Where(name => tNames.Contains(name)).Count();
+                tMark = tCount/tNames.Count;
+			}
+
+            return (0.25 * (pMark + tMark)) + (film.Rating * 0.5);
+        }
+
         public override string ToString() 
         {
             string res = string.Empty;
