@@ -15,13 +15,6 @@ await repository.LoadDataAsync(
     );
 int endTime = DateTime.Now.Hour * 3600 + DateTime.Now.Minute * 60 + DateTime.Now.Second;
 Console.WriteLine(endTime - startTime);
-int count = 0;
-foreach (Film film in repository.Movies.Values) 
-{
-    if (string.IsNullOrEmpty(film.Title)) count++;
-}
 
-Console.WriteLine(repository.Movies.Count);
-Console.WriteLine(repository.ActorsAndDirectors.Count);
-Console.WriteLine(count);
+Console.WriteLine(repository.Movies[113326]);
 Console.ReadKey();

@@ -61,7 +61,7 @@ namespace Movie
                         int i = s.IndexOf('\t');
                         string c = s.Substring(i + 1);
                         string strPersonId = c.Substring(2, 7);
-                        string role = c.Substring(10, 5);
+                        string role = c.Substring(10, 4);
 
                         output.Add($"{strId},{strPersonId},{role}");
                     }
@@ -91,10 +91,10 @@ namespace Movie
                                 Person addedPerson = new Person();
                                 addedPerson.Job = "director";
                                 films.AddOrUpdate(filmId,
-                                    new Film() { Director = addedPerson },
+                                    new Film() {  Actors = new HashSet<Person>() { addedPerson } },
                                     (key, movie) => 
                                     {
-                                        movie.Director = addedPerson;
+                                        movie.Actors.Add(addedPerson);
                                         return movie;
                                     });
 
@@ -105,10 +105,10 @@ namespace Movie
                                 else 
                                 {
                                     films.AddOrUpdate(filmId, 
-                                    new Film() { Director =  actors[personId] },
+                                    new Film() { Actors = new HashSet<Person>() { actors[personId] } },
 									(key, movie) =>
 									{
-                                        movie.Director = actors[personId];
+                                        movie.Actors.Add(actors[personId]);
 										return movie;
 									});
                                     actors[personId].Movies.Add(films[filmId]);
@@ -180,8 +180,6 @@ namespace Movie
 									actors[personId].Movies.Add(films[filmId]);
 								}
 
-                                
-
                                 break;
                         }
 
@@ -205,7 +203,7 @@ namespace Movie
                     }
                     lines.CompleteAdding();
                 });
-        } //114709
+        } 
 
         internal Task CheckMoviesCodesAsync(BlockingCollection<string> input, BlockingCollection<string> output) 
         {
@@ -216,7 +214,7 @@ namespace Movie
                         int ind = line.IndexOf('\t', line.IndexOf('\t', line.IndexOf('\t') + 1) + 1);
                         string lang = line.Substring(ind+1, 2);
 
-                        if (lang.Equals("RU") || lang.Equals("EN"))
+                        if (lang.Equals("RU") || lang.Equals("US"))
                             output.Add(line);
                     }
 
@@ -234,7 +232,6 @@ namespace Movie
                         string s = line.Substring(10 + i + 1);
                         int k = s.IndexOf('\t');
                         string title = s.Substring(0, k);
-
                         output.Add($"{id},{title}");
                     }
 
@@ -248,16 +245,13 @@ namespace Movie
                 () => {
                     foreach (string line in lines.GetConsumingEnumerable())
                     {
-                        int ind = line.IndexOf(',');
+						Info.Count++;
+						int ind = line.IndexOf(',');
                         int id = Convert.ToInt32(line.Substring(0, ind));
                         string title = line.Substring(ind + 1);
-
                         dict.AddOrUpdate(id, new Film() { Title = title },
                             (key, movie) => {
                                 movie.Title = title;
-                                Film f = movie;
-                                if (movie.Actors.Count > 0)
-                                    Console.WriteLine();
                                 return movie;
                             });
                     }
@@ -312,7 +306,9 @@ namespace Movie
                         int id = Convert.ToInt32(line.Substring(0,ind));
                         double rate = Convert.ToDouble(line.Substring(ind+1));
 
-                        dict.AddOrUpdate(id, new Film(), (key, movie) => 
+                        if (!dict.ContainsKey(id)) continue;
+
+                        dict.AddOrUpdate(id, new Film() { Title = "rtg"}, (key, movie) => 
                         {
                             movie.Rating = rate;
                             return movie;
@@ -358,6 +354,21 @@ namespace Movie
                 }, TaskCreationOptions.LongRunning);
         }
 
+        internal Task CheckActorsNamesLinesAsync(BlockingCollection<string> input, BlockingCollection<string> output, ConcurrentDictionary<int, Person> dict) 
+        {
+            return Task.Factory.StartNew(
+                () => {
+                    foreach (string line in input.GetConsumingEnumerable()) 
+                    {
+						int ind = line.IndexOf(',');
+						int id = Convert.ToInt32(line.Substring(0, ind));
+                        if (dict.ContainsKey(id)) output.Add(line);
+                    }
+
+                    output.CompleteAdding();
+                }, TaskCreationOptions.LongRunning);
+        }
+
         internal Task AppendActorsToDictionaryAsync(BlockingCollection<string> lines, ConcurrentDictionary<int, Person> dict)
         {
             return Task.Factory.StartNew(
@@ -376,6 +387,7 @@ namespace Movie
                    }
                }, TaskCreationOptions.LongRunning);
         }
+
         internal Task ReadCodesLinksAsync(string fileName, BlockingCollection<string> lines)
         {
             return Task.Run(
@@ -546,7 +558,7 @@ namespace Movie
 
                         if (!films.ContainsKey(id)) continue;
 
-                        films.AddOrUpdate(id, new Film(), (key, movie) => 
+                        films.AddOrUpdate(id, new Film() { Title = "ttg"}, (key, movie) => 
                         {
                             movie.Tags.Add(tags[tagId]);
                             return movie;

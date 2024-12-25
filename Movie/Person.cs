@@ -15,7 +15,9 @@ namespace Movie
 
         public Person() 
         {
+            Name = string.Empty;
             Movies = new HashSet<Film>();
+            Job = string.Empty;
         }
 
         public override string ToString() 

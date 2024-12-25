@@ -11,6 +11,7 @@ namespace Movie
     {
         public Film() 
         {
+            Title = string.Empty;
             Actors = new HashSet<Person>();
             Tags = new HashSet<Tag>();
 
@@ -18,7 +19,6 @@ namespace Movie
 
         public string Title { get; set; }
         public HashSet<Person> Actors { get; set; }
-        public Person Director { get; set; }
         public HashSet<Tag> Tags { get; set; }
         public double Rating { get; set; }
 
@@ -30,7 +30,6 @@ namespace Movie
             res += $"\nRating: {Rating}\n";
             res += "\nActors: \n";
             foreach (Person person in Actors) res += $"{person.Name}; {person.Job}\n";
-            res += $"\nDirector: {Director?.Name}";
             res += "\nTags: \n";
             foreach (Tag tag in Tags) res += $"{tag.TagName}\n";
 

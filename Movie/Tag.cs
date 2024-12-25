@@ -15,6 +15,7 @@ namespace Movie
         public Tag() 
         {
             Movies = new HashSet<Film>();
+            TagName = string.Empty;
         }
 
         public override string ToString() 

@@ -79,6 +79,7 @@ namespace Movie
         private BlockingCollection<string> _moviesFiltered = new BlockingCollection<string>();
         private BlockingCollection<string> _moviesOutput = new BlockingCollection<string>();
         private BlockingCollection<string> _actorsNamesInput = new BlockingCollection<string>();
+        private BlockingCollection<string> _actorsNamesFiltered = new BlockingCollection<string>();
         private BlockingCollection<string> _actorsNamesOuput = new BlockingCollection<string>();
         private BlockingCollection<string> _tagsInput = new BlockingCollection<string>();
         private BlockingCollection<string> _tagsOutput = new BlockingCollection<string>();
@@ -93,9 +94,42 @@ namespace Movie
         private BlockingCollection<string> _moviesTagsFiltered = new BlockingCollection<string>();
         private BlockingCollection<string> _moviesTagsOutput = new BlockingCollection<string>();
         
-        public ConcurrentDictionary<int, Film> Movies { get => _movies; }
-        public ConcurrentDictionary<int, Person> ActorsAndDirectors { get => _actors; }
-        public ConcurrentDictionary<int, Tag> Tags {  get => _tags; }
+        public Dictionary<int, Film> Movies { 
+            get 
+            {
+                return _movies.Where(movie => !string.IsNullOrEmpty(movie.Value.Title)).ToDictionary(); 
+            } 
+        }
+        public Dictionary<int, Person> ActorsAndDirectors { 
+            get 
+            {
+                Dictionary<int, Person> res = _actors.Where(person => !string.IsNullOrEmpty(person.Value.Name)
+                && person.Value.Movies.Any(movie => !string.IsNullOrEmpty(movie.Title))).ToDictionary();
+
+                foreach (KeyValuePair<int, Person> item in res) 
+                {
+                    item.Value.Movies = item.Value.Movies
+                        .Where(movie => !string.IsNullOrEmpty(movie.Title)).ToHashSet();
+                }
+
+				return res;
+            }  
+        }
+        public Dictionary<int, Tag> Tags { 
+            get 
+            {
+                Dictionary<int, Tag> res = _tags.Where(tag => !string.IsNullOrEmpty(tag.Value.TagName)
+				&&tag.Value.Movies.Count > 0 && tag.Value.Movies.Any(movie => !string.IsNullOrEmpty(movie.Title))).ToDictionary();
+
+                foreach (KeyValuePair<int, Tag> item in res) 
+                {
+                    item.Value.Movies = item.Value.Movies
+						.Where(movie => !string.IsNullOrEmpty(movie.Title)).ToHashSet();
+				}
+
+                return res;
+			}  
+        }
         
         private ConcurrentDictionary<int, Film> _movies = new ConcurrentDictionary<int, Film>();
         private ConcurrentDictionary<int, Person> _actors = new ConcurrentDictionary<int, Person>();
@@ -130,7 +164,8 @@ namespace Movie
             Task secondTask = Task.WhenAll(
                    
                     _provider.ReadActorsNamesAsync(fileNames[1], _actorsNamesInput),
-				    _provider.ParseActorsNamesLinesAsync(_actorsNamesInput, _actorsNamesOuput),
+				    _provider.ParseActorsNamesLinesAsync(_actorsNamesInput, _actorsNamesFiltered),
+                    _provider.CheckActorsNamesLinesAsync(_actorsNamesFiltered, _actorsNamesOuput, _actors),
                     _provider.AppendActorsToDictionaryAsync(_actorsNamesOuput, _actors),
 				    
                     _provider.ReadMoviesTagsAsync(fileNames[5], _moviesTagsInput),
